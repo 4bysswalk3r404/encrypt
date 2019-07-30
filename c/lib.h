@@ -9,6 +9,10 @@ void decrypt(unsigned char* data, unsigned int bufferSize, unsigned int seed);
 
 char* concatenate(char* base, char* sub);
 
+char* concatPoi(char** elements, int num);
+
+int strSize(char* string);
+
 unsigned int intLen(int num);
 
 unsigned int lastNum(int num);

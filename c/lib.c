@@ -114,3 +114,11 @@ char* concatenate(char* base, char* sub)
         output--;
     return output;
 }
+
+char* concatPoi(char** elements, int num)
+{
+    char* output = elements[0];
+    for (int i = 1; i < num; i++)
+        output = concatenate(output, elements[i]);
+    return output;
+}

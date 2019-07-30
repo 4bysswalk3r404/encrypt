@@ -14,34 +14,31 @@ int main(int argc, char** argv)
 
     FILE* infile = fopen(infilename, "rb");
 
-    unsigned int bufferSize = 0;
-    unsigned char* buffer;
+    fseek(infile, 0L, SEEK_END);
+    unsigned int bufferSize = ftell(infile);
+    rewind(infile);
+
+    unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
 
     while (!(feof(infile)))
     {
         *buffer = getc(infile);
         buffer++;
-        bufferSize++;
     }
-    *buffer = '\0';
-    printf("%s\n", buffer);
 
-    /*do {
-        *buffer = getc(infile);
-        buffer++;
-        bufferSize++;
-    } while (!(feof(infile)));*/
     fclose(infile);
-    for (int i = 0; i < bufferSize; i++)
+    for (int i = 0; i < bufferSize + 1; i++)
         buffer--;
 
     encrypt(buffer, bufferSize, atoi(argv[2]));
 
-    char* outfilename = "./encrypted.txt";
+    char* outfilename = concatenate(infilename, "(enc)");
+    outfilename =  concatenate(outfilename, ".txt");
     for (int i = 1; access(outfilename, F_OK) != -1; i++)
     {
-        outfilename = concatenate("./encrypted", toStr(i));
-        outfilename = concatenate(outfilename, ".txt");
+        outfilename = concatenate(infilename, "(enc)");
+        outfilename = concatenate(outfilename, toStr(i));
+        outfilename =  concatenate(outfilename, ".txt");
     }
 
     FILE* outfile = fopen(outfilename, "wb");
