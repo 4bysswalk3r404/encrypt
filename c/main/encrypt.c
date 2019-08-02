@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "lib.h"
+#include "../lib/strlib.h"
 
 int main(int argc, char** argv)
 {
@@ -32,18 +32,21 @@ int main(int argc, char** argv)
 
     encrypt(buffer, bufferSize, atoi(argv[2]));
 
-    char* outfilename = concatenate(infilename, "(enc)");
-    outfilename =  concatenate(outfilename, ".txt");
+    char* outfilename = (char*)malloc(sizeof(char) * 100);
+    SetStr(outfilename, infilename);
+    ConcatStr(outfilename, ".enc");
     for (int i = 1; access(outfilename, F_OK) != -1; i++)
     {
-        outfilename = concatenate(infilename, "(enc)");
-        outfilename = concatenate(outfilename, toStr(i));
-        outfilename =  concatenate(outfilename, ".txt");
+        SetStr(outfilename, infilename);
+        ConcatStr(outfilename, ToStr(i));
+        ConcatStr(outfilename, ".enc");
     }
 
     FILE* outfile = fopen(outfilename, "wb");
     fwrite(buffer, bufferSize, 1, outfile);
     fclose(outfile);
+
+    free(outfilename);
 
     return 1;
 }
