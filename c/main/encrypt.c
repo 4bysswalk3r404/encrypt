@@ -11,19 +11,22 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    char* outfilename;
+    int seed;
+
     int O_ARG = 0;
     int S_ARG = 0;
     for (int i = 0; i < argc; i++) {
         if (SameStr(argv[i], "-o", 2)) {
             O_ARG = 1;
-            char* outfilename = (char*)argv[i + 1];
+            outfilename = (char*)argv[i + 1];
         } else if (SameStr(argv[i], "-s", 2)) {
             S_ARG = 1;
-            int seed = atoi(argv[i] + 1);
+            seed = atoi(argv[i] + 1);
         }
     }
     if (!(O_ARG)) {
-        char* outfilename = (char*)argv[1];
+         outfilename = (char*)argv[1];
     }
     if (!(S_ARG)) {
         printf("you must supply a seed/password with -p. killing program.\n");
@@ -46,9 +49,9 @@ int main(int argc, char** argv)
     }
 
     fclose(infile);
-    buffer = bufferSize;
+    buffer = bufferStart;
 
-    encrypt(buffer, bufferSize, atoi(seed);
+    encrypt(buffer, bufferSize, seed);
 
     FILE* outfile = fopen(outfilename, "wb");
     fwrite(buffer, bufferSize, 1, outfile);

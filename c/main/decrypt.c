@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     fclose(infile);
     buffer = bufferSize;
 
-    decrypt(buffer, bufferSize, atoi(seed);
+    decrypt(buffer, bufferSize, seed);
 
     FILE* outfile = fopen(outfilename, "wb");
     fwrite(buffer, bufferSize, 1, outfile);
