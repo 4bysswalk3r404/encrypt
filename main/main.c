@@ -7,7 +7,8 @@
 #include <unistd.h>
 
 unsigned int seed;
-unsigned char* key;
+char* key;
+int keylen;
 
 int X_ARG;
 int S_ARG;
@@ -41,23 +42,21 @@ void encryption(char* filename)
                 *buffer = (getc(infile) DEF_X rand() % 256) % 256;
                 buffer++;
             }
-            rewind(infile);
-            for (int i = 0; !(feof(infile)); i++)
+            for (int i = 0; i < bufferSize; i++)
             {
-                *buffer ^= *(key + (i % strlen(key)));
+                *buffer ^= key[i % keylen];
                 buffer++;
             }
         } else { // decryption
-            for (int i = 0; !(feof(infile)); i++)
+            for (int i = 0; i < bufferSize; i++)
             {
-                *buffer ^= *(key + (i % strlen(key)));
+                *buffer = getc(infile) ^ key[i % keylen];
                 buffer++;
             }
-            rewind(infile);
             srand(seed);
             while (!(feof(infile)))
             {
-                *buffer = (getc(infile) DEF_X rand() % 256) % 256;
+                *buffer = (*buffer DEF_X rand() % 256) % 256;
                 buffer++;
             }
         }
@@ -71,7 +70,7 @@ void encryption(char* filename)
     } else if (X_ARG) {
         for (int i = 0; !(feof(infile)); i++)
         {
-            *buffer ^= *(key + (i % strlen(key)));
+            *buffer = getc(infile) ^ key[i % keylen];
             buffer++;
         }
     }
@@ -118,11 +117,12 @@ void recursiveWalkEncrypt(char* path)
 int main(int argc, char** argv)
 {
     if (SameStr(argv[1], "help", 4)) {
-        printf("-s seed of file encryption\n");
+        printf("-s seed of file encryption.\n");
         printf("-x supply password for xor encryption/decryption.\n");
-        printf("[-o] specify output file name\n");
-        printf("[-c] print output to console and suppress file writing\n");
-        printf("[-r] recursively encrypts all accessable files in directory specified\n");
+        //printf("[-o] specify output file name.\n");
+        //printf("[-c] print output to console and suppress file writing.\n");
+        printf("[-r] recursively encrypts all accessable files in directory specified.\n");
+        printf("[-B] number of bytes for every normal byte (limited to 10).\n");
         exit(EXIT_SUCCESS);
     }
     char* infilename = argv[1];
@@ -131,76 +131,38 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    char* outfilename;
 
-    int O_ARG = 0;
-    int C_ARG = 0;
     int R_ARG = 0;
     S_ARG = 0;
     X_ARG = 0;
     for (int i = 0; i < argc; i++) {
-        if (SameStr(argv[i], "-o", 2)) {
-            O_ARG = 1;
-            outfilename = (char*)argv[i + 1];
-        } else if (SameStr(argv[i], "-s", 2)) {
+        if (SameStr(argv[i], "-s", 2)) {
             S_ARG = 1;
             seed = atoi(argv[i + 1]);
         } else if (SameStr(argv[i], "-x", 2)) {
             X_ARG = 1;
-            key  = argv[i + 1];
-        } else if (SameStr(argv[i], "-c", 2)) {
-            C_ARG = 1;
+            key = argv[i + 1];
+            keylen = strlen(key);
         } else if (SameStr(argv[i], "-r", 2)) {
             R_ARG = 1;
         }
     }
-    if (!(O_ARG)) {
-        outfilename = (char*)argv[1];
-    }
     if (S_ARG && X_ARG) {
-        printf("using xor and seed based encryption/decryption\n");
+        encryption(infilename);
+        exit(EXIT_SUCCESS);
     } else if (S_ARG) {
-        printf("using seed based encryption/decryption only\n");
         encryption(infilename);
         exit(EXIT_SUCCESS);
     } else if (X_ARG) {
-        printf("using xor based encryption/decryption only\n");
+        encryption(infilename);
+        exit(EXIT_SUCCESS);
     } else {
         printf("you must supply a seed/password with -s. killing program.\n");
         exit(EXIT_FAILURE);
     }
     if (R_ARG) {
         recursiveWalkEncrypt(infilename);
-        return 1;
+        exit(EXIT_SUCCESS);
     }
-
-    FILE* infile = fopen(infilename, "rb");
-
-    fseek(infile, 0L, SEEK_END);
-    unsigned int bufferSize = ftell(infile);
-    rewind(infile);
-
-    unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
-    void* bufferStart = buffer;
-
-    srand(seed);
-    while (!(feof(infile)))
-    {
-        *buffer = (getc(infile) DEF_X rand() % 256) % 256;
-        buffer++;
-    }
-    fclose(infile);
-
-    *buffer = '\0';
-    buffer = bufferStart;
-
-    if (!(C_ARG)) {
-        FILE* outfile = fopen(outfilename, "wb");
-        fwrite(buffer, bufferSize, 1, outfile);
-        fclose(outfile);
-    } else {
-        printf("%s\n", buffer);
-    }
-
-    return 1;
+    return 0;
 }
