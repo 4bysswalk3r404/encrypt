@@ -38,7 +38,7 @@ int main(int argc, char** argv)
             outfilename = (char*)argv[i + 1];
         } else if (SameStr(argv[i], "-s", 2)) {
             S_ARG = 1;
-            seed = atoi(argv[i] + 1);
+            seed = atoi(argv[i + 1]);
         } else if (SameStr(argv[i], "-c", 2)) {
             C_ARG = 1;
         }
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     srand(seed);
     while (!(feof(infile)))
     {
-        *buffer = ((getc(infile) DEF_X rand() % 256) % 256) ^ (unsigned char)seed;
+        *buffer = (getc(infile) DEF_X rand() % 256) % 256;
         buffer++;
     }
     fclose(infile);
@@ -78,7 +78,6 @@ int main(int argc, char** argv)
     } else {
         printf("%s\n", buffer);
     }
-    free(outfilename);
 
     return 1;
 }
