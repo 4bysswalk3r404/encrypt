@@ -7,6 +7,10 @@
 #include <unistd.h>
 
 unsigned int seed;
+unsigned char* key;
+
+int X_ARG;
+int S_ARG;
 
 int SameStr(char* s1, char* s2, int num)
 {
@@ -29,11 +33,47 @@ void encryption(char* filename)
     unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
     void* bufferStart = buffer;
 
-    srand(seed);
-    while (!(feof(infile)))
-    {
-        *buffer = (getc(infile) DEF_X rand() % 256) % 256;
-        buffer++;
+    if (X_ARG && S_ARG) {
+        if (1 DEF_X 1) { // encryption
+            srand(seed);
+            while (!(feof(infile)))
+            {
+                *buffer = (getc(infile) DEF_X rand() % 256) % 256;
+                buffer++;
+            }
+            rewind(infile);
+            for (int i = 0; !(feof(infile)); i++)
+            {
+                *buffer ^= *(key + (i % strlen(key)));
+                buffer++;
+            }
+        } else { // decryption
+            for (int i = 0; !(feof(infile)); i++)
+            {
+                *buffer ^= *(key + (i % strlen(key)));
+                buffer++;
+            }
+            rewind(infile);
+            srand(seed);
+            while (!(feof(infile)))
+            {
+                *buffer = (getc(infile) DEF_X rand() % 256) % 256;
+                buffer++;
+            }
+        }
+    } else if (S_ARG) {
+        srand(seed);
+        while (!(feof(infile)))
+        {
+            *buffer = (getc(infile) DEF_X rand() % 256) % 256;
+            buffer++;
+        }
+    } else if (X_ARG) {
+        for (int i = 0; !(feof(infile)); i++)
+        {
+            *buffer ^= *(key + (i % strlen(key)));
+            buffer++;
+        }
     }
     fclose(infile);
 
@@ -79,6 +119,7 @@ int main(int argc, char** argv)
 {
     if (SameStr(argv[1], "help", 4)) {
         printf("-s seed of file encryption\n");
+        printf("-x supply password for xor encryption/decryption.\n");
         printf("[-o] specify output file name\n");
         printf("[-c] print output to console and suppress file writing\n");
         printf("[-r] recursively encrypts all accessable files in directory specified\n");
@@ -93,9 +134,10 @@ int main(int argc, char** argv)
     char* outfilename;
 
     int O_ARG = 0;
-    int S_ARG = 0;
     int C_ARG = 0;
     int R_ARG = 0;
+    S_ARG = 0;
+    X_ARG = 0;
     for (int i = 0; i < argc; i++) {
         if (SameStr(argv[i], "-o", 2)) {
             O_ARG = 1;
@@ -103,6 +145,9 @@ int main(int argc, char** argv)
         } else if (SameStr(argv[i], "-s", 2)) {
             S_ARG = 1;
             seed = atoi(argv[i + 1]);
+        } else if (SameStr(argv[i], "-x", 2)) {
+            X_ARG = 1;
+            key  = argv[i + 1];
         } else if (SameStr(argv[i], "-c", 2)) {
             C_ARG = 1;
         } else if (SameStr(argv[i], "-r", 2)) {
@@ -112,7 +157,15 @@ int main(int argc, char** argv)
     if (!(O_ARG)) {
         outfilename = (char*)argv[1];
     }
-    if (!(S_ARG)) {
+    if (S_ARG && X_ARG) {
+        printf("using xor and seed based encryption/decryption\n");
+    } else if (S_ARG) {
+        printf("using seed based encryption/decryption only\n");
+        encryption(infilename);
+        exit(EXIT_SUCCESS);
+    } else if (X_ARG) {
+        printf("using xor based encryption/decryption only\n");
+    } else {
         printf("you must supply a seed/password with -s. killing program.\n");
         exit(EXIT_FAILURE);
     }
