@@ -1,7 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "../lib/strlib.h"
+
+int SameStr(char* s1, char* s2, int num)
+{
+    for (int i = 0; i < num; i++) {
+        if (!(*s1 == *s2))
+            return 0;
+        s1++; s2++;
+    }
+    return 1;
+}
 
 int main(int argc, char** argv)
 {
@@ -52,17 +61,16 @@ int main(int argc, char** argv)
     unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
     void* bufferStart = buffer;
 
+    srand(seed);
     while (!(feof(infile)))
     {
-        *buffer = getc(infile);
+        *buffer = (getc(infile) DEF_X rand() % 256) % 256;
         buffer++;
     }
     fclose(infile);
 
     *buffer = '\0';
     buffer = bufferStart;
-
-    encrypt(buffer, bufferSize, seed);
 
     if (!(C_ARG)) {
         FILE* outfile = fopen(outfilename, "wb");
