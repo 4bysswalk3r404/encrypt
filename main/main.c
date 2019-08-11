@@ -5,7 +5,7 @@
 int SameStr(char* s1, char* s2, int num)
 {
     for (int i = 0; i < num; i++) {
-        if (!(*s1 == *s2))
+        if (*s1 != *s2)
             return 0;
         s1++; s2++;
     }
@@ -18,17 +18,16 @@ int main(int argc, char** argv)
         printf("-s seed of file encryption\n");
         printf("[-o] specify output file name\n");
         printf("[-c] print output to console and suppress file writing\n");
-        //printf("[-n] suppress file writing\n");
-        exit(1);
+        exit(EXIT_SUCCESS);
     }
     char* infilename = argv[1];
     if (access(infilename, F_OK) == -1) {
         printf("%s does not exist or could not be found.\n", infilename);
-        return -1;
+        exit(EXIT_FAILURE);
     }
 
     char* outfilename;
-    int seed;
+    unsigned int seed;
 
     int O_ARG = 0;
     int S_ARG = 0;
