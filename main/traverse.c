@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+unsigned int seed;
+
 int sameStr(char* base, char* sub, int num)
 {
     int same = 0;
@@ -20,30 +22,39 @@ int sameStr(char* base, char* sub, int num)
     return 0;
 }
 
-int main(int argc, char** argv)
+void encryption(char* filename)
+{
+    FILE* infile = fopen(filename, "rb");
+
+    fseek(infile, 0L, SEEK_END);
+    unsigned int bufferSize = ftell(infile);
+    rewind(infile);
+
+    unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
+    void* bufferStart = buffer;
+
+    srand(seed);
+    while (!(feof(infile)))
+    {
+        *buffer = (getc(infile) DEF_X rand() % 256) % 256;
+        buffer++;
+    }
+    fclose(infile);
+
+    *buffer = '\0';
+    buffer = bufferStart;
+
+    FILE* outfile = fopen(filename, "wb");
+    fwrite(buffer, bufferSize, 1, outfile);
+    fclose(outfile);
+}
+
+void recursiveWalk(char* path)
 {
     DIR *d;
     struct dirent *dir;
-    char path[100];
-    strcpy(path, argv[1]);
     d = opendir(path);
     char full_path[100];
-
-    char files[100][100];
-    char folders[100][100];
-
-    int filesc = 0;
-    int foldersc = 0;
-    char c;
-
-    printf("%s\n", path);
-    printf("are you sure you want to encrypt this directory? [Y/N] ");
-    scanf("%c", &c);
-    if (!(c == 'Y' || c == 'y'))
-    {
-        printf("aborted\n");
-        exit(-1);
-    }
 
     if (d)
     {
@@ -54,48 +65,24 @@ int main(int argc, char** argv)
                 strcat(full_path, path);
                 strcat(full_path, "/");
                 strcat(full_path, dir->d_name);
-                strcpy(files[filesc], full_path);
-                filesc++;
+                encryption(full_path);
+                printf("file: %s\n", full_path);
             } else if ((dir->d_type == DT_DIR) && (!(sameStr(dir->d_name, "..", 2) || sameStr(dir->d_name, "..", 1)))) {
                 full_path[0] = '\0';
                 strcat(full_path, path);
                 strcat(full_path, "/");
                 strcat(full_path, dir->d_name);
-                strcpy(folders[foldersc], full_path);
-                foldersc++;
+                recursiveWalk(full_path);
             }
         }
         closedir(d);
-    } else {
-        printf("could not open directory\n");
     }
+}
 
-    for (int i = 0; i < filesc; i++)
-    {
-        FILE* infile;
+int main(int argc, char** argv)
+{
+    seed = atoi(argv[2]);
+    recursiveWalk(argv[1]);
 
-        fseek(infile, 0L, SEEK_END);
-        unsigned int bufferSize = ftell(infile);
-        rewind(infile);
-
-        unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
-        void* BufferStart = buffer;
-
-        while (!(feof(infile)))
-        {
-            *buffer = getc(infile);
-            buffer++;
-        }
-        buffer = BufferStart;
-
-        encrypt(buffer, atoi)
-
-        FILE* outfile;
-        printf("file: %s\n", files[i]);
-    }
-    for (int i = 0; i < foldersc; i++)
-    {
-        printf("folder: %s\n", folders[i]);
-    }
-    return(0);
+    return 1;
 }
