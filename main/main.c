@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     srand(seed);
     while (!(feof(infile)))
     {
-        *buffer = (getc(infile) DEF_X rand() % 256) % 256;
+        *buffer = ((getc(infile) DEF_X rand() % 256) % 256) ^ (unsigned char)seed;
         buffer++;
     }
     fclose(infile);
