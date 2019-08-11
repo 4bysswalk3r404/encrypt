@@ -10,9 +10,6 @@ unsigned int seed;
 char* key;
 int keylen;
 
-int X_ARG;
-int S_ARG;
-
 int SameStr(char* s1, char* s2, int num)
 {
     for (int i = 0; i < num; i++) {
@@ -23,7 +20,7 @@ int SameStr(char* s1, char* s2, int num)
     return 1;
 }
 
-void encryption(char* filename)
+void encryption(char* filename, int S_ARG, int X_ARG)
 {
     FILE* infile = fopen(filename, "rb");
 
@@ -34,33 +31,7 @@ void encryption(char* filename)
     unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char) * bufferSize);
     void* bufferStart = buffer;
 
-    if (X_ARG && S_ARG) {
-        if (1 DEF_X 1) { // encryption
-            srand(seed);
-            while (!(feof(infile)))
-            {
-                *buffer = (getc(infile) DEF_X rand() % 256) % 256;
-                buffer++;
-            }
-            for (int i = 0; i < bufferSize; i++)
-            {
-                *buffer ^= key[i % keylen];
-                buffer++;
-            }
-        } else { // decryption
-            for (int i = 0; i < bufferSize; i++)
-            {
-                *buffer = getc(infile) ^ key[i % keylen];
-                buffer++;
-            }
-            srand(seed);
-            while (!(feof(infile)))
-            {
-                *buffer = (*buffer DEF_X rand() % 256) % 256;
-                buffer++;
-            }
-        }
-    } else if (S_ARG) {
+    if (S_ARG) {
         srand(seed);
         while (!(feof(infile)))
         {
@@ -100,7 +71,7 @@ void recursiveWalkEncrypt(char* path)
                 strcat(full_path, path);
                 strcat(full_path, "/");
                 strcat(full_path, dir->d_name);
-                encryption(full_path);
+                encryption(full_path, 1, 0);
                 printf("file: %s\n", full_path);
             } else if ((dir->d_type == DT_DIR) && (!(SameStr(dir->d_name, "..", 2) || SameStr(dir->d_name, "..", 1)))) {
                 full_path[0] = '\0';
@@ -133,8 +104,8 @@ int main(int argc, char** argv)
 
 
     int R_ARG = 0;
-    S_ARG = 0;
-    X_ARG = 0;
+    int X_ARG;
+    int S_ARG;
     for (int i = 0; i < argc; i++) {
         if (SameStr(argv[i], "-s", 2)) {
             S_ARG = 1;
@@ -148,13 +119,19 @@ int main(int argc, char** argv)
         }
     }
     if (S_ARG && X_ARG) {
-        encryption(infilename);
+        if (1 DEF_X 1) {
+            encryption(infilename, 1, 0);
+            encryption(infilename, 0, 1);
+        } else {
+            encryption(infilename, 0, 1);
+            encryption(infilename, 1, 0);
+        }
         exit(EXIT_SUCCESS);
     } else if (S_ARG) {
-        encryption(infilename);
+        encryption(infilename, 1, 0);
         exit(EXIT_SUCCESS);
     } else if (X_ARG) {
-        encryption(infilename);
+        encryption(infilename, 0, 1);
         exit(EXIT_SUCCESS);
     } else {
         printf("you must supply a seed/password with -s. killing program.\n");
