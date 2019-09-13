@@ -55,7 +55,7 @@ void encryption(char* filename, int S_ARG, int X_ARG)
     fclose(outfile);
 }
 
-void recursiveWalkEncrypt(char* path)
+void recursiveWalkEncrypt(char* path, int S_ARG, int X_ARG)
 {
     DIR *d;
     struct dirent *dir;
@@ -71,14 +71,26 @@ void recursiveWalkEncrypt(char* path)
                 strcat(full_path, path);
                 strcat(full_path, "/");
                 strcat(full_path, dir->d_name);
-                encryption(full_path, 1, 0);
+                if (S_ARG && X_ARG) {
+                    if (1 DEF_X 1) {
+                        encryption(full_path, 1, 0);
+                        encryption(full_path, 0, 1);
+                    } else {
+                        encryption(full_path, 0, 1);
+                        encryption(full_path, 1, 0);
+                    }
+                } else if (S_ARG) {
+                    encryption(full_path, 1, 0);
+                } else if (X_ARG) {
+                    encryption(full_path, 0, 1);
+                }
                 printf("file: %s\n", full_path);
             } else if ((dir->d_type == DT_DIR) && (!(SameStr(dir->d_name, "..", 2) || SameStr(dir->d_name, "..", 1)))) {
                 full_path[0] = '\0';
                 strcat(full_path, path);
                 strcat(full_path, "/");
                 strcat(full_path, dir->d_name);
-                recursiveWalkEncrypt(full_path);
+                recursiveWalkEncrypt(full_path, S_ARG, X_ARG);
             }
         }
         closedir(d);
@@ -91,7 +103,6 @@ int main(int argc, char** argv)
         printf("-s seed of file encryption.\n");
         printf("-x supply password for xor encryption/decryption.\n");
         //printf("[-o] specify output file name.\n");
-        //printf("[-c] print output to console and suppress file writing.\n");
         printf("[-r] recursively encrypts all accessable files in directory specified.\n");
         printf("[-B] number of bytes for every normal byte (limited to 10).\n");
         exit(EXIT_SUCCESS);
@@ -118,6 +129,10 @@ int main(int argc, char** argv)
             R_ARG = 1;
         }
     }
+    if (R_ARG) {
+        recursiveWalkEncrypt(infilename, S_ARG, X_ARG);
+        exit(EXIT_SUCCESS);
+    }
     if (S_ARG && X_ARG) {
         if (1 DEF_X 1) {
             encryption(infilename, 1, 0);
@@ -136,10 +151,6 @@ int main(int argc, char** argv)
     } else {
         printf("you must supply a seed/password with -s. killing program.\n");
         exit(EXIT_FAILURE);
-    }
-    if (R_ARG) {
-        recursiveWalkEncrypt(infilename);
-        exit(EXIT_SUCCESS);
     }
     return 0;
 }
